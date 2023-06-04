@@ -2,10 +2,38 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import Confetti from "react-confetti";
 
-const gameIcons = ["🎉", "🌹", "🤳", "🎁", "🐱‍🚀", "🙌", "👀", "✨", "🤷‍♂️"];
+const allGameIcons = [
+  "🎉",
+  "🌹",
+  "🤳",
+  "🎁",
+  "🐱",
+  "🙌",
+  "👀",
+  "✨",
+  "🤷‍♂️",
+  "👑",
+  "🎈",
+];
+
+const levelClearedMsg = [
+  "🌟 Great start",
+  "⭐️ Nice progress!",
+  "🎉 Well done! Move on..",
+  "🏆 Impressive skills!",
+  "🌟 Halfway mark!",
+  "🌟 Excellent work!",
+  "⚡️ Remarkable progress!",
+  "🎯 Outstanding performance!",
+  "🔥 Incredible perseverance!",
+  "🎉 Congratulations, you've conquered!",
+];
 
 function App() {
   const [pieces, setPices] = useState([]);
+  const [level, setLevel] = useState(1);
+  const [lives, setLives] = useState(null);
+
   let timeout = useRef();
 
   const isGameCompleted = useMemo(() => {
@@ -16,7 +44,12 @@ function App() {
   }, [pieces]);
 
   const startGame = () => {
+    const gameIcons = [];
+    for (let i = 0; i <= level; i++) {
+      gameIcons.push(allGameIcons[i]);
+    }
     const duplicateGameIcons = [...gameIcons, ...gameIcons];
+    setLives(level * (duplicateGameIcons.length + 10));
     const newGameIcons = [];
 
     while (newGameIcons.length < gameIcons.length * 2) {
@@ -29,20 +62,19 @@ function App() {
       });
       duplicateGameIcons.splice(randomIndex, 1);
     }
-
     setPices(newGameIcons);
   };
 
   useEffect(() => {
     startGame();
-  }, []);
+  }, [level]);
 
   const handleActive = (data) => {
     const flippedData = pieces.filter((data) => data.flipped && !data.solved);
     if (flippedData.length === 2) return;
-
     const newPieces = pieces.map((piece) => {
       if (piece.position === data.position) {
+        if (!piece.flipped) setLives(lives - 1);
         piece.flipped = !piece.flipped;
       }
       return piece;
@@ -62,6 +94,7 @@ function App() {
             ) {
               if (flippedData[0].emoji === flippedData[1].emoji) {
                 piece.solved = true;
+                setLives(lives + 3);
               } else {
                 piece.flipped = false;
               }
@@ -75,15 +108,23 @@ function App() {
 
   useEffect(() => {
     gameLogicForFlipped();
-
     return () => {
       clearTimeout(timeout.current);
     };
   }, [pieces]);
 
+  const restartGame = () => {
+    setLevel(1);
+    startGame();
+  };
+
   return (
     <main>
-      <h1>Memory Game in React</h1>
+      <h1 className="animate-charcter"> Memory Game in React </h1>
+      <div className="title">
+        <h1> Level - {level} </h1>
+        <h2> Tries left - {lives} </h2>
+      </div>
       <div className="container">
         {pieces.map((data, index) => (
           <div
@@ -103,8 +144,26 @@ function App() {
 
       {isGameCompleted && (
         <div className="game-completed">
-          <h1>YOU WINN!!!</h1>
+          <h1> {levelClearedMsg[level - 1]} </h1>
+          {level === 10 ? (
+            <button onClick={restartGame}> Play Again </button>
+          ) : (
+            <button
+              onClick={() => {
+                setLevel(level + 1);
+              }}
+            >
+              Next Level
+            </button>
+          )}
           <Confetti width={window.innerWidth} height={window.innerHeight} />
+        </div>
+      )}
+
+      {lives === 0 && !isGameCompleted && (
+        <div className="game-completed">
+          <h1> Game Over </h1>
+          <button onClick={restartGame}> Play Again </button>
         </div>
       )}
     </main>

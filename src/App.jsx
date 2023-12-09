@@ -42,6 +42,10 @@ function App() {
     }
     return false;
   }, [pieces]);
+  
+  useEffect(()=>{
+    isGameCompleted && setPices((prevPieces) => prevPieces.map((item) => ({ ...item, flipped: false })));
+  },[isGameCompleted])
 
   const startGame = () => {
     const gameIcons = [];
@@ -129,7 +133,7 @@ function App() {
         {pieces.map((data, index) => (
           <div
             className={`flip-card ${
-              data.flipped || data.solved ? "active" : ""
+              data.flipped ? "active" : ""
             } `}
             key={index}
             onClick={() => handleActive(data)}
